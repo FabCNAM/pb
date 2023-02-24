@@ -1,0 +1,117 @@
+
+<!DOCTYPE HTML>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog</title>
+</head>
+
+<body>
+<h1>LOGIN</h1>
+
+<label for="login">Username:</label>
+<input type="text" id="login" name="login" required>
+<br>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" required>
+<br>
+<button type="submit" onclick="doLogin()">Login</button>
+
+    <div id="messages"></div>
+    <pre id="console">
+    </pre>
+
+
+<script>
+    function byId(id) {
+        return document.getElementById(id)
+    }
+
+    var globalToken = "";
+    var globalUser = null;
+
+    function send(url, args) {
+        if (globalToken) {
+            alert("globalToken "+globalToken);
+            let newArgs = {...args};
+            let bearer = "bearer "+ globalToken;
+            if (newArgs.headers) {
+                newArgs.headers.Authorization = bearer;
+            } else {
+                newArgs.headers = {
+                    'Authorization': bearer
+                }
+            }
+            return fetch(url, newArgs);
+        } else {
+            alert("global token vide")
+            return fetch(url,args);
+        }
+    }
+
+    function doLogin() {
+        toConsole("")
+        const login = byId("login").value
+        const password = byId("password").value
+        fetch("/auth/login", {
+            method : "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({login: login, password: password})
+        }).then(resp => {
+            if (resp.ok) {
+                return resp.json()
+            } else {
+                throw new Error('Login failed');
+            }})
+            .then(resp => receiveToken(resp))
+            .then(resp => redirect())
+            .catch(error => {
+                doLogout()
+                toConsole(error)
+            })
+    }
+
+    function receiveToken(token) {
+        alert("1");
+        globalToken = token.value;
+        let parts = token.value.split(".");
+        globalUser = JSON.parse(atob(parts[1]));
+        document.cookie=globalToken;
+        alert("2");
+    }
+
+    function redirect() {
+        toConsole("")
+        send("/admin", {
+            method : "POST",
+            headers: {
+                'Accept': 'text/html'
+            },
+        })
+        .then(resp => {
+            if (resp.ok) {
+                alert("redirect");
+                window.location.href = "/admin";
+               //return resp.text();
+            } else {
+                throw new Error('Login failed');
+            }})
+    }
+    function toConsole(txt) {
+        byId("console").textContent = txt
+    }
+
+    function doLogout() {
+        toConsole("")
+        globalToken = undefined
+        globalUser =  undefined
+    }
+</script>
+
+</body>
+</html>
