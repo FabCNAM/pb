@@ -81,7 +81,7 @@
         globalToken = token.value;
         let parts = token.value.split(".");
         globalUser = JSON.parse(atob(parts[1]));
-        document.cookie=globalToken;
+        //document.cookie=globalToken;
         alert("2");
     }
 
@@ -94,9 +94,8 @@
             },
         })
         .then(resp => {
-            if (resp.ok) {
-                alert("redirect");
-                window.location.href = "/admin";
+            if (resp.ok) { 
+                //window.location.href = "/admin";
                //return resp.text();
             } else {
                 throw new Error('Login failed');
